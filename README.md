@@ -6,7 +6,7 @@
 
 ## Overview
 - poseidon独立的日志记录中心
-- 需要配合poseidon版本1.1.0及以上
+- 需要配合poseidon版本1.2.0及以上
 - poseidon(https://github.com/cwdtom/poseidon)
     
 ## Usage
