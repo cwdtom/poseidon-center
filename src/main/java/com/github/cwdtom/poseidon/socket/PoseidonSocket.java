@@ -9,6 +9,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -21,12 +22,16 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-public class PoseidonSocket {
+public class PoseidonSocket implements Runnable {
     private Integer port;
 
     public PoseidonSocket(Integer port) {
         this.port = port;
-        bind();
+    }
+
+    @Override
+    public void run() {
+        this.bind();
     }
 
     /**
@@ -38,7 +43,7 @@ public class PoseidonSocket {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(boss, worker);
         bootstrap.channel(NioServerSocketChannel.class);
-        bootstrap.option(ChannelOption.SO_BACKLOG, 512);
+        bootstrap.option(ChannelOption.SO_BACKLOG, 128);
         bootstrap.option(ChannelOption.TCP_NODELAY, true);
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
@@ -47,6 +52,8 @@ public class PoseidonSocket {
                 ChannelPipeline p = socketChannel.pipeline();
                 p.addLast(new Decode());
                 p.addLast(new HandlerMessage());
+                p.addLast(new IdleStateHandler(60, 0, 0));
+                p.addLast(new HeartbeatHandler());
             }
         });
         try {
@@ -110,6 +117,16 @@ public class PoseidonSocket {
                 default:
                     log.info(logStr);
             }
+        }
+    }
+
+    /**
+     * 处理心跳
+     */
+    private class HeartbeatHandler extends ChannelInboundHandlerAdapter {
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            ctx.channel().close().sync();
         }
     }
 }
