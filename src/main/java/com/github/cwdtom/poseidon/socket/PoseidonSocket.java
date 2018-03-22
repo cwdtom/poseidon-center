@@ -22,15 +22,11 @@ import java.util.List;
  * @since 1.0.0
  */
 @Slf4j
-public class PoseidonSocket implements Runnable {
+public class PoseidonSocket {
     private Integer port;
 
     public PoseidonSocket(Integer port) {
         this.port = port;
-    }
-
-    @Override
-    public void run() {
         this.bind();
     }
 
@@ -50,10 +46,9 @@ public class PoseidonSocket implements Runnable {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
                 ChannelPipeline p = socketChannel.pipeline();
+                p.addLast(new IdleStateHandler(60, 0, 0));
                 p.addLast(new Decode());
                 p.addLast(new HandlerMessage());
-                p.addLast(new IdleStateHandler(60, 0, 0));
-                p.addLast(new HeartbeatHandler());
             }
         });
         try {
@@ -89,6 +84,8 @@ public class PoseidonSocket implements Runnable {
             }
             byte[] body = new byte[length];
             byteBuf.readBytes(body);
+            // 释放已读buffer
+            byteBuf.discardReadBytes();
             list.add(new Message(length, level, body));
         }
     }
@@ -97,7 +94,6 @@ public class PoseidonSocket implements Runnable {
      * 处理消息
      */
     private class HandlerMessage extends SimpleChannelInboundHandler<Message> {
-
         @Override
         protected void channelRead0(ChannelHandlerContext channelHandlerContext, Message message) throws Exception {
             InetSocketAddress isa = (InetSocketAddress) channelHandlerContext.channel().remoteAddress();
@@ -118,15 +114,14 @@ public class PoseidonSocket implements Runnable {
                     log.info(logStr);
             }
         }
-    }
 
-    /**
-     * 处理心跳
-     */
-    private class HeartbeatHandler extends ChannelInboundHandlerAdapter {
+        /**
+         * 处理心跳
+         */
         @Override
-        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-            ctx.channel().close().sync();
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+            log.warn(ctx.channel().remoteAddress().toString() + " is offline.");
+            ctx.channel().close();
         }
     }
 }
