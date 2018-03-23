@@ -73,9 +73,14 @@ public class PoseidonSocket {
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
             // 读取数据长度
-            int length = byteBuf.readInt();
+            Integer length = byteBuf.readInt();
+            // 判断是否为心跳包
+            if (length == 0) {
+                byteBuf.discardReadBytes();
+                return;
+            }
             // 读取日志类型
-            int level = byteBuf.readInt();
+            Integer level = byteBuf.readInt();
             // 判断数据包是否到齐
             if (byteBuf.readableBytes() < length) {
                 // 读取位置归0
