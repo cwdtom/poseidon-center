@@ -6,7 +6,7 @@
 
     <groupId>com.github.cwdtom</groupId>
     <artifactId>poseidon-center</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
     <description>poseidon log center</description>
     <packaging>jar</packaging>
     <name>Poseidon-center</name>
