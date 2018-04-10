@@ -18,9 +18,21 @@ import java.io.IOException;
  * @since 1.0.0
  */
 public class Main {
+    /**
+     * help
+     */
     private static final String HELP = "h";
+    /**
+     * port
+     */
     private static final String PORT = "p";
+    /**
+     * config file path
+     */
     private static final String CONFIG = "c";
+    /**
+     * version
+     */
     private static final String VERSION = "v";
 
     /**
