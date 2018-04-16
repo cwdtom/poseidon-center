@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 监听注册端口
@@ -23,7 +24,14 @@ import java.util.List;
  */
 @Slf4j
 public class PoseidonSocket {
+    /**
+     * 端口
+     */
     private Integer port;
+    /**
+     * 连接计数
+     */
+    private static AtomicInteger count = new AtomicInteger(0);
 
     public PoseidonSocket(Integer port) {
         this.port = port;
@@ -131,6 +139,16 @@ public class PoseidonSocket {
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
             log.warn(ctx.channel().remoteAddress().toString() + " is offline.");
             ctx.channel().close();
+        }
+
+        @Override
+        public void channelActive(ChannelHandlerContext ctx) {
+            log.info("ON: connection sum is " + PoseidonSocket.count.incrementAndGet());
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) {
+            log.info("OFF: connection sum is " + PoseidonSocket.count.decrementAndGet());
         }
     }
 }
