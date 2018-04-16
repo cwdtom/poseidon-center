@@ -13,6 +13,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class Message {
     /**
+     * 协议魔数
+     */
+    public static final int MAGIC_NUM = 0xB03D;
+    /**
      * 数据长度
      */
     private Integer length;
